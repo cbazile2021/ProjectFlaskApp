@@ -5,6 +5,8 @@ from google.cloud import texttospeech
 import os
 import subprocess
 import json
+import imageio_ffmpeg as ffmpeg
+import subprocess
 
 
 app = Flask(__name__)
@@ -44,11 +46,21 @@ def index():
     return render_template('index.html', audio_files=audio_files, tts_files=tts_files)
 
 
+
+
+
 def convert_to_linear16(input_path, output_path):
-    """Force audio to LINEAR16 format with 48000 Hz sample rate."""
+    ffmpeg_path = ffmpeg.get_ffmpeg_exe()
     subprocess.run([
-        "ffmpeg", "-y", "-i", input_path, "-ar", "48000", "-ac", "1", "-acodec", "pcm_s16le", output_path
+        ffmpeg_path, "-y", "-i", input_path, "-ar", "48000", "-ac", "1", "-acodec", "pcm_s16le", output_path
     ], check=True)
+
+
+# def convert_to_linear16(input_path, output_path):
+#     """Force audio to LINEAR16 format with 48000 Hz sample rate."""
+#     subprocess.run([
+#         "ffmpeg", "-y", "-i", input_path, "-ar", "48000", "-ac", "1", "-acodec", "pcm_s16le", output_path
+#     ], check=True)
 
 @app.route('/upload', methods=['POST'])
 def upload_audio():
