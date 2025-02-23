@@ -2,6 +2,9 @@ const recordButton = document.getElementById('startRecording');
 const stopButton = document.getElementById('stopRecording');
 const audioElement = document.getElementById('audioPlayback');
 const transcriptionText = document.getElementById('transcribedText');
+const sentimentLabel = document.getElementById('sentimentLabel');
+const sentimentScore = document.getElementById('sentimentScore');
+const sentimentMagnitude = document.getElementById('sentimentMagnitude');
 const recordingStatus = document.getElementById('recordingStatus');
 
 let mediaRecorder;
@@ -9,6 +12,7 @@ let audioChunks = [];
 let startTime;
 let timerInterval;
 
+// Format time in MM:SS format
 function formatTime(time) {
   const minutes = Math.floor(time / 60);
   const seconds = Math.floor(time % 60);
@@ -65,6 +69,17 @@ recordButton.addEventListener('click', () => {
             if (data.transcript) {
               transcriptionText.textContent = `Transcription: ${data.transcript}`;
               recordingStatus.textContent = "Transcription completed successfully.";
+
+              // Display Sentiment Analysis if available
+              if (data.sentiment) {
+                sentimentLabel.textContent = data.sentiment.label;
+                sentimentScore.textContent = data.sentiment.score.toFixed(2);
+                sentimentMagnitude.textContent = data.sentiment.magnitude.toFixed(2);
+              } else {
+                sentimentLabel.textContent = "No sentiment analysis available.";
+                sentimentScore.textContent = "---";
+                sentimentMagnitude.textContent = "---";
+              }
             } else {
               transcriptionText.textContent = "No transcription available.";
               recordingStatus.textContent = "Failed to process transcription.";
