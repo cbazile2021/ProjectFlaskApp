@@ -2,9 +2,7 @@ const recordButton = document.getElementById('startRecording');
 const stopButton = document.getElementById('stopRecording');
 const audioElement = document.getElementById('audioPlayback');
 const transcriptionText = document.getElementById('transcribedText');
-const sentimentLabel = document.getElementById('sentimentLabel');
-const sentimentScore = document.getElementById('sentimentScore');
-const sentimentMagnitude = document.getElementById('sentimentMagnitude');
+const sentimentOutput = document.getElementById('sentimentOutput');
 const recordingStatus = document.getElementById('recordingStatus');
 
 let mediaRecorder;
@@ -72,13 +70,9 @@ recordButton.addEventListener('click', () => {
 
               // Display Sentiment Analysis if available
               if (data.sentiment) {
-                sentimentLabel.textContent = data.sentiment.label;
-                sentimentScore.textContent = data.sentiment.score.toFixed(2);
-                sentimentMagnitude.textContent = data.sentiment.magnitude.toFixed(2);
+                sentimentOutput.textContent = `Sentiment Analysis: ${data.sentiment}`;
               } else {
-                sentimentLabel.textContent = "No sentiment analysis available.";
-                sentimentScore.textContent = "---";
-                sentimentMagnitude.textContent = "---";
+                sentimentOutput.textContent = "No sentiment analysis available.";
               }
             } else {
               transcriptionText.textContent = "No transcription available.";

@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Recorder</title>
+    <title>Audio Recorder with LLM</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>Audio Recorder and Converter</h1>
+        <h1>Audio Recorder and Converter with LLM</h1>
         <h2> Charles Bazile - COT5930 </h2>
 
         <div class="row">
-            <!-- Left Column: Audio Recording and Transcription -->
             <div class="column">
                 <div class="recorder">
                     <h2>🎤 Record Your Audio</h2>
@@ -33,47 +32,10 @@
 
                 <div class="sentiment-box">
                     <h3>📊 Sentiment Analysis</h3>
-                    <p><strong>Label:</strong> 
-                        <span id="sentimentLabel" class="neutral">---</span>
-                    </p>
-                    <p><strong>Score:</strong> <span id="sentimentScore">---</span></p>
-                    <p><strong>Magnitude:</strong> <span id="sentimentMagnitude">---</span></p>
-                </div>
-            </div>
-
-            <!-- Right Column: Text-to-Speech -->
-            <div class="column">
-                <div class="text-to-speech">
-                    <h2>🔄 Convert Text to Speech</h2>
-                    <form id="uploadForm" action="/upload_text" method="POST">
-                        <textarea name="text" id="textInput" placeholder="Type your text here..." required></textarea>
-                        <button type="submit" class="btn">Convert to Audio</button>
-                    </form>
+                    <p id="sentimentOutput">Sentiment result will appear here...</p>
                 </div>
 
-                <div class="generated-audio">
-                    <h2>🎵 Generated Audio from Text</h2>
-                    <ul>
-                        {% for data in tts_files %}
-                        <li class="tts-item">
-                            <p><strong>Text:</strong> {{ data.text }}</p>
-                            
-                            <div class="sentiment-box">
-                                <h3>📊 Sentiment Analysis</h3>
-                                <p><strong>Label:</strong> 
-                                    <span class="{% if data.sentiment.label == 'Positive' %}positive{% elif data.sentiment.label == 'Negative' %}negative{% else %}neutral{% endif %}">
-                                        {{ data.sentiment.label }}
-                                    </span>
-                                </p>
-                                <p><strong>Score:</strong> {{ "%.2f"|format(data.sentiment.score) }}</p>
-                                <p><strong>Magnitude:</strong> {{ "%.2f"|format(data.sentiment.magnitude) }}</p>
-                            </div>
-
-                            <audio controls src="{{ url_for('tts_file', filename=data.filename) }}"></audio>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
+               
             </div>
         </div>
     </div>

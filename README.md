@@ -1,88 +1,119 @@
+
 # Project Flask App
 
 ## 📌 Description
 This Flask-based web application allows users to:
-- 🎤 **Record audio** using their microphone and upload the recording for transcription using the Google **Speech-to-Text API**.
-- 🔊 **Convert text input to speech** using the Google **Text-to-Speech API**.
-- 📝 **Perform Sentiment Analysis** on both **transcribed speech and user-entered text** using the Google **Natural Language API**.
-- 📊 **View sentiment results** for both recorded audio and generated speech.
+- 🎤 **Record audio** using their microphone and upload the recording for transcription and sentiment analysis using Google Cloud's **Vertex AI Multimodal LLM**.
+- 📝 **View real-time sentiment feedback** directly from the LLM response.
 
-## 🚀 Features
-### ✅ **Speech-to-Text (Audio Recording & Transcription)**
-- **Record audio** directly from the browser.
-- **Upload and transcribe** recorded audio using **Google Speech-to-Text API**.
-- **Sentiment Analysis** is performed on the transcribed text.
-- Results include **sentiment label** (Positive, Negative, Neutral) with **score & magnitude**.
-- Sentiment data is **saved to a file** along with the transcript.
+🚫 **Text-to-Speech and separate APIs (Speech-to-Text, Natural Language)** were used in the previous version but have now been removed to simplify the experience.
 
-### ✅ **Text-to-Speech (User Input to Audio)**
-- **Enter text** in the input field and convert it to **speech audio**.
-- **Sentiment Analysis** is performed on the text before conversion.
-- Results include **sentiment label, score, and magnitude**.
-- Sentiment data is **saved alongside the generated audio**.
+## 🚀 Features (Current Version)
+### ✅ **Unified Transcription & Sentiment Analysis**
+- Record audio directly from the browser.
+- Upload and analyze using **Vertex AI Gemini models**.
+- A single API call returns both **transcription** and **sentiment analysis**.
+- Results are saved in a `.txt` file alongside the `.wav` audio.
+- Graceful handling for **quota issues**, **timeouts**, and **safety filter blocks**.
 
 ### ✅ **User Interface Enhancements**
-- **Improved UI layout** with structured sections.
-- **Color-coded sentiment labels**:
-  - 🟢 **Positive** (Green)
-  - 🔴 **Negative** (Red)
-  - ⚫ **Neutral** (Gray)
-- **Organized Transcription & Sentiment Display** for a **better user experience**.
+- Modern layout with a clean recording interface.
+- Displayed transcription and sentiment results side-by-side.
+- Clear indicators when safety filters block the model’s response.
 
 ---
 
-## ⚙️ **Setup Instructions**
-### **🔹 Prerequisites**
-- **Python 3.x** installed.
-- **ffmpeg** installed on your system.
-- **Google Cloud API credentials JSON file** for API access.
+## 🧠 Features from Previous Version
+Before the Project 3 changes, the app included:
 
-### **🔹 Installation**
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/cbazile2021/ProjectFlaskApp.git
-   cd ProjectFlaskApp
+### 🎙️ **Speech-to-Text using Google API**
+- Audio recording from the browser
+- Uploads were transcribed using the **Google Speech-to-Text API**
+- Sentiment analysis was performed using **Google Natural Language API**
 
+### 🗣️ **Text-to-Speech with Sentiment**
+- User could enter text
+- Text was converted to audio using **Google Text-to-Speech API**
+- Sentiment was analyzed before conversion
 
-   # How to Use the App
+### 🎨 **UI Enhancements**
+- Color-coded sentiment labels (green for positive, red for negative, gray for neutral)
+- Sections for both transcribed audio and text-generated speech
 
-## 📌 Accessing the Application  
-Open a web browser and navigate to the deployed application:  
-🔗 [Live Application](https://projectflaskapp-921157662827.us-central1.run.app/)
-
----
-
-## 🎤 Recording and Analyzing Speech  
-1. Click on the **“Start Recording”** button.  
-2. Speak into the microphone and click **“Stop Recording”** when finished.  
-3. The recorded audio will be processed:  
-   - The app will **transcribe your speech into text**.  
-   - A **sentiment analysis** will be performed.  
-   - The **transcription and sentiment data** will be **displayed and saved**.  
+These features were removed or merged to simplify the current architecture.
 
 ---
 
-## 📝 Converting Text to Speech and Analyzing Sentiment  
-1. Enter text into the **text input field**.  
-2. Click on **“Convert to Audio”** to generate speech.  
-3. The app will **analyze the sentiment** before conversion.  
-4. Once processed, you can **listen to the generated speech** and **view the sentiment results**.  
-5. The **text, audio, and sentiment data are stored together** for reference.  
+## ⚙️ Setup Instructions
+
+### 🔹 Prerequisites
+- Python 3.x installed
+- ffmpeg installed on your system
+- Google Cloud Project with Vertex AI enabled
+- A service account JSON key file with access to Vertex AI
+
+### 🔹 Installation
+```bash
+git clone https://github.com/cbazile2021/ProjectFlaskApp.git
+cd ProjectFlaskApp
+
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+export GOOGLE_APPLICATION_CREDENTIALS="path/to/your/key.json"
+python main.py
+```
 
 ---
 
-## 📊 Understanding Sentiment Analysis Results  
-The app assigns one of **three sentiment labels** to the input:  
+## 🧪 How to Use the App
 
-- **Positive:** Indicates happy, uplifting, or optimistic content.  
-- **Neutral:** Indicates neutral or factual statements.  
-- **Negative:** Indicates sadness, frustration, or negative sentiment.  
+### 📌 Accessing the Application
+Open a web browser and go to:  
+🔗 [Live App](https://projectflaskapp-921157662827.us-central1.run.app/)
 
-Each sentiment analysis result includes:  
-- **Sentiment Score**: Shows how strong the emotion is.  
-- **Magnitude**: Reflects the **intensity of emotion** detected in the input.  
+### 🎤 Record & Analyze Speech
+1. Click **Start Recording**  
+2. Speak clearly and click **Stop Recording**  
+3. The app will:
+   - Convert audio to WAV
+   - Transcribe + analyze using Gemini
+   - Display and save the results
 
 ---
 
-🚀 **Now you're ready to explore the app! Let me know if you need any modifications!** 🎉🔥
+## 📊 Understanding the Sentiment Results
+- Sentiment labels: **Positive**, **Neutral**, **Negative**
+- Model response may be blocked by safety filters
+- The app shows a message if that happens
 
+---
+
+## 📉 Limitations & Reliability
+- Safety filters may block some results
+- Gemini APIs have usage quotas
+- Retry logic + delay reduce failure rates
+
+---
+
+## 📂 File Storage Behavior
+- `.wav` files stored in `uploads/`
+- Each has a matching `.txt` with:
+  - File name
+  - Transcript
+  - Sentiment analysis
+
+---
+
+## 🔁 Recent Changes (Project 3 Update)
+| Change                         | Description                                               |
+|-------------------------------|-----------------------------------------------------------|
+| 🎯 Replaced 3 APIs             | Now uses a single Gemini LLM for transcription & sentiment |
+| 🧹 Removed TTS                | Text-to-Speech feature removed                            |
+| 🚦 Retry + Safety Handling    | App won't crash if Gemini blocks or times out             |
+| 💾 Better File Management     | All outputs saved by filename with `.txt` extension       |
+
+---
+
+🚀 **You’re now ready to experience smarter, faster speech intelligence!** 🎉
