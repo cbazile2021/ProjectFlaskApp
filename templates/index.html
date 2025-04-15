@@ -3,43 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Recorder with LLM</title>
+    <title>Charles Bazile - Course Project - Book Q&A via Audio</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script defer src="{{ url_for('static', filename='script.js') }}"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Audio Recorder and Converter with LLM</h1>
-        <h2> Charles Bazile - COT5930 </h2>
+        <h1 style="color:#4A90E2">🎙️ Ask Your Book Questions with Your Voice</h1>
+        <h2 style="color:#333">By Charles Bazile — COT5930</h2>
 
+        <!-- Book Upload -->
+        <div class="upload-section">
+            <h2>📘 Upload Your Book (PDF)</h2>
+            <form id="bookUploadForm" action="/upload_book" method="POST" enctype="multipart/form-data">
+                <input type="file" name="book_file" accept=".pdf" required>
+                <button class="btn" type="submit">Upload Book</button>
+            </form>
+            {% if book_files %}
+                <p><strong>Latest Book:</strong> {{ book_files[0] }}</p>
+            {% else %}
+                <p>No book uploaded yet.</p>
+            {% endif %}
+        </div>
+
+        <hr>
+
+        <!-- Audio Recorder -->
         <div class="row">
             <div class="column">
                 <div class="recorder">
-                    <h2>🎤 Record Your Audio</h2>
+                    <h2>🎤 Record Your Question</h2>
                     <button id="startRecording" class="btn">Start Recording</button>
                     <button id="stopRecording" class="btn" disabled>Stop Recording</button>
                     <p id="recordingStatus">Click "Start Recording" to begin.</p>
                 </div>
 
                 <div class="playback">
-                    <h2>🔊 Playback Recorded Audio</h2>
+                    <h2>🔊 Playback Your Recording</h2>
                     <audio id="audioPlayback" controls></audio>
                 </div>
 
-                <div id="transcriptionResult">
-                    <h2>📝 Transcription Result</h2>
+                <div id="transcriptionResult" class="sentiment-box">
+                    <h2>📝 Transcribed Question</h2>
                     <p id="transcribedText">The transcription will appear here...</p>
                 </div>
 
-                <div class="sentiment-box">
-                    <h3>📊 Sentiment Analysis</h3>
-                    <p id="sentimentOutput">Sentiment result will appear here...</p>
+                <div class="answer-box">
+                    <h2>📖 Answer from the Book</h2>
+                    <p id="bookAnswer">The answer will appear here...</p>
+                    <audio id="answerAudio" controls></audio>
                 </div>
-
-               
             </div>
         </div>
     </div>
-
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

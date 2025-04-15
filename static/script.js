@@ -1,110 +1,107 @@
-const recordButton = document.getElementById('startRecording');
-const stopButton = document.getElementById('stopRecording');
-const audioElement = document.getElementById('audioPlayback');
-const transcriptionText = document.getElementById('transcribedText');
-const sentimentOutput = document.getElementById('sentimentOutput');
-const recordingStatus = document.getElementById('recordingStatus');
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("📜 script.js is loaded");
 
-let mediaRecorder;
-let audioChunks = [];
-let startTime;
-let timerInterval;
+  let mediaRecorder;
+  let recordedChunks = [];
 
-// Format time in MM:SS format
-function formatTime(time) {
-  const minutes = Math.floor(time / 60);
-  const seconds = Math.floor(time % 60);
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-}
+  const startBtn = document.getElementById('startRecording');
+  const stopBtn = document.getElementById('stopRecording');
+  const audioPlayback = document.getElementById('audioPlayback');
+  const recordingStatus = document.getElementById('recordingStatus');
+  const transcribedText = document.getElementById('transcribedText');
+  const bookAnswer = document.getElementById('bookAnswer');
+  const answerAudio = document.getElementById('answerAudio');
 
-// Start recording audio
-recordButton.addEventListener('click', () => {
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(stream => {
-      mediaRecorder = new MediaRecorder(stream);
-      mediaRecorder.start();
+  startBtn.addEventListener('click', async () => {
+      console.log("🎬 Start Recording button clicked");
+      recordedChunks = [];
+      recordingStatus.textContent = "🎙️ Recording...";
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
 
-      // Reset recording data and status
-      audioChunks = [];
-      recordingStatus.textContent = "Recording... Click 'Stop Recording' to finish.";
-      startTime = Date.now();
+      try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          console.log("🎤 Microphone stream received");
 
-      // Timer to show elapsed recording time
-      timerInterval = setInterval(() => {
-        const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-        recordingStatus.textContent = `Recording... ${formatTime(elapsedTime)}`;
-      }, 1000);
-
-      // Collect recorded audio chunks
-      mediaRecorder.ondataavailable = e => {
-        audioChunks.push(e.data);
-      };
-
-      // Handle recording stop
-      mediaRecorder.onstop = () => {
-        clearInterval(timerInterval);
-        recordingStatus.textContent = "Recording stopped. Processing audio...";
-
-        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-        const audioURL = URL.createObjectURL(audioBlob);
-        audioElement.src = audioURL;
-
-        // Send recorded audio to the server
-        const formData = new FormData();
-        formData.append('audio_data', audioBlob, 'recorded_audio.wav');
-
-        fetch('/upload', {
-          method: 'POST',
-          body: formData
-        })
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-            return response.json();
-          })
-          .then(data => {
-            if (data.transcript) {
-              transcriptionText.textContent = `Transcription: ${data.transcript}`;
-              recordingStatus.textContent = "Transcription completed successfully.";
-
-              // Display Sentiment Analysis if available
-              if (data.sentiment) {
-                sentimentOutput.textContent = `Sentiment Analysis: ${data.sentiment}`;
-              } else {
-                sentimentOutput.textContent = "No sentiment analysis available.";
+          mediaRecorder = new MediaRecorder(stream);
+          mediaRecorder.ondataavailable = (event) => {
+              if (event.data.size > 0) {
+                  recordedChunks.push(event.data);
+                  console.log("📦 Chunk added");
               }
-            } else {
-              transcriptionText.textContent = "No transcription available.";
-              recordingStatus.textContent = "Failed to process transcription.";
-            }
-          })
-          .catch(error => {
-            console.error('Error uploading audio:', error);
-            recordingStatus.textContent = "An error occurred during audio processing.";
-          });
-      };
-    })
-    .catch(error => {
-      console.error('Error accessing microphone:', error);
-      recordingStatus.textContent = "Microphone access denied.";
-    });
+          };
 
-  // Disable/Enable buttons during recording
-  recordButton.disabled = true;
-  stopButton.disabled = false;
+          mediaRecorder.onstop = async () => {
+              const blob = new Blob(recordedChunks, { type: 'audio/wav' });
+              const url = URL.createObjectURL(blob);
+              audioPlayback.src = url;
+
+              const formData = new FormData();
+              formData.append('audio_data', blob, 'question.wav');
+
+              recordingStatus.innerHTML = "⏳ Uploading and analyzing... <span class='spinner'></span>";
+
+              try {
+                  const response = await fetch('/upload', {
+                      method: 'POST',
+                      body: formData
+                  });
+
+                  if (response.ok) {
+                      const result = await response.json();
+                      transcribedText.textContent = result.transcript || 'No transcript returned.';
+                      bookAnswer.textContent = result.answer || 'No answer returned.';
+                      if (result.audio_response) {
+                          answerAudio.src = result.audio_response;
+                          answerAudio.play();
+                      }
+                      recordingStatus.textContent = "✅ Answer received!";
+                  } else {
+                      transcribedText.textContent = 'Error occurred.';
+                      bookAnswer.textContent = '';
+                      recordingStatus.textContent = "❌ Something went wrong.";
+                  }
+              } catch (error) {
+                  console.error("Upload failed:", error);
+                  transcribedText.textContent = 'Upload failed.';
+                  bookAnswer.textContent = '';
+                  recordingStatus.textContent = "❌ Upload failed.";
+              }
+          };
+
+          mediaRecorder.start();
+          console.log("⏺️ MediaRecorder started");
+
+      } catch (err) {
+          console.error("❌ Failed to get microphone access:", err);
+          alert("Failed to access the microphone. Please enable it in your browser settings.");
+      }
+  });
+
+  stopBtn.addEventListener('click', () => {
+      stopBtn.disabled = true;
+      startBtn.disabled = false;
+      recordingStatus.textContent = "🧠 Processing...";
+      mediaRecorder.stop();
+      console.log("🛑 MediaRecorder stopped");
+  });
+
+  // Drag-and-drop PDF upload
+  const uploadForm = document.querySelector('form[action="/upload_book"]');
+  const fileInput = uploadForm.querySelector('input[type="file"]');
+
+  uploadForm.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadForm.style.border = '2px dashed #1a73e8';
+  });
+
+  uploadForm.addEventListener('dragleave', () => {
+      uploadForm.style.border = '2px dashed #aaa';
+  });
+
+  uploadForm.addEventListener('drop', (e) => {
+      e.preventDefault();
+      fileInput.files = e.dataTransfer.files;
+      uploadForm.style.border = '2px dashed #aaa';
+  });
 });
-
-// Stop recording audio
-stopButton.addEventListener('click', () => {
-  if (mediaRecorder) {
-    mediaRecorder.stop();
-  }
-
-  // Disable/Enable buttons after stopping recording
-  recordButton.disabled = false;
-  stopButton.disabled = true;
-});
-
-// Initially disable the stop button
-stopButton.disabled = true;
