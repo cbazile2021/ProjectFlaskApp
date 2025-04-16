@@ -2,6 +2,9 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, send_from_directory, jsonify
 import os
 
+ENV = os.getenv("ENV", "local")
+
+
 if os.environ.get("ENV") != "cloud":
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/charlesandersbazile/Downloads/ProjectFlaskApp/project1-charlesbazile-cot5930-33bd4c8216ee.json"
 
