@@ -49,7 +49,7 @@ def extract_text_from_pdf(pdf_path):
             text = page.extract_text()
             if text:
                 full_text += text + "\n"
-    return full_text[:15000]
+    return full_text[:5000]  # Reduce size for safety
 
 def convert_to_linear16(input_path, output_path):
     ffmpeg_path = ffmpeg.get_ffmpeg_exe()
@@ -95,29 +95,34 @@ def upload_book():
 
 @app.route('/upload', methods=['POST'])
 def upload_audio():
-    if 'audio_data' not in request.files:
-        return "No audio data", 400
+    try:
+        if 'audio_data' not in request.files:
+            return "No audio data", 400
 
-    file = request.files['audio_data']
-    if file.filename == '':
-        return "No selected file", 400
+        file = request.files['audio_data']
+        if file.filename == '':
+            return "No selected file", 400
 
-    if file and allowed_file(file.filename, ALLOWED_AUDIO_EXTENSIONS):
-        filename = datetime.now().strftime("%Y%m%d-%I%M%S%p")
-        wav_filename = filename + '.wav'
-        txt_filename = filename + '.txt'
+        if file and allowed_file(file.filename, ALLOWED_AUDIO_EXTENSIONS):
+            filename = datetime.now().strftime("%Y%m%d-%I%M%S%p")
+            wav_filename = filename + '.wav'
+            txt_filename = filename + '.txt'
 
-        file_path = os.path.join(UPLOAD_FOLDER, wav_filename)
-        file.save(file_path)
+            file_path = os.path.join(UPLOAD_FOLDER, wav_filename)
+            file.save(file_path)
 
-        converted_path = file_path.replace('.wav', '_converted.wav')
-        convert_to_linear16(file_path, converted_path)
+            converted_path = file_path.replace('.wav', '_converted.wav')
+            convert_to_linear16(file_path, converted_path)
 
-        transcript, answer = analyze_question_with_llm(converted_path)
+            print("Calling analyze_question_with_llm")
+            transcript, answer = analyze_question_with_llm(converted_path)
 
-        text_path = os.path.join(UPLOAD_FOLDER, txt_filename)
-        answer_path = os.path.join(ANSWER_FOLDER, filename + '.mp3')
-        if transcript and answer:
+            if not transcript or not answer:
+                return jsonify({"error": "Processing failed"}), 500
+
+            text_path = os.path.join(UPLOAD_FOLDER, txt_filename)
+            answer_path = os.path.join(ANSWER_FOLDER, filename + '.mp3')
+
             with open(text_path, 'w') as f:
                 f.write(f"Original Audio File: {wav_filename}\n")
                 f.write(f"Transcription:\n{transcript}\n\n")
@@ -131,7 +136,10 @@ def upload_audio():
                 "audio_response": f"/answers/{filename}.mp3"
             }), 200
 
-    return jsonify({"error": "Invalid file or processing error"}), 400
+        return jsonify({"error": "Invalid file"}), 400
+    except Exception as e:
+        print(f"Upload route error: {e}")
+        return jsonify({"error": "Exception occurred in processing"}), 500
 
 def analyze_question_with_llm(audio_path):
     try:
@@ -152,17 +160,21 @@ def analyze_question_with_llm(audio_path):
         )
 
         audio_part = Part.from_data(audio_data, mime_type="audio/wav")
+        print("Sending prompt to Gemini")
 
         for _ in range(3):
             try:
                 response = model.generate_content([prompt, audio_part])
+
+                if response.prompt_feedback and response.prompt_feedback.block_reason:
+                    return "Blocked", "Gemini blocked this request."
+
                 return "Transcribed question (auto)", response.text.strip()
             except Exception as e:
-                print(f"Retrying LLM call due to: {e}")
+                print(f"LLM retry due to: {e}")
                 time.sleep(2)
 
-        return None, "Failed to get LLM response."
-
+        return None, "LLM call failed"
     except Exception as e:
         print(f"LLM Analysis Error: {e}")
         return None, None
