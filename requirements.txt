@@ -1,5 +1,5 @@
 Flask==3.0.3
-gunicorn==22.0.0
+
 imageio==2.37.0
 imageio-ffmpeg==0.6.0
 pdfplumber==0.10.3
