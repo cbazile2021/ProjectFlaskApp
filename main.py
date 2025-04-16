@@ -1,8 +1,9 @@
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, send_from_directory, jsonify
 import os
-# Forcefully override default credentials before any import that might use them
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/charlesandersbazile/Downloads/ProjectFlaskApp/project1-charlesbazile-cot5930-33bd4c8216ee.json"
+
+if os.environ.get("ENV") != "cloud":
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/charlesandersbazile/Downloads/ProjectFlaskApp/project1-charlesbazile-cot5930-33bd4c8216ee.json"
 
 import subprocess
 import json
@@ -192,6 +193,8 @@ def get_uploaded_audio(filename):
 def get_uploaded_book(filename):
     return send_from_directory(BOOK_FOLDER, filename)
 
+
 if __name__ == '__main__':
-    print("\U0001F4E6 Flask App Running on http://localhost:5001")
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    port = int(os.environ.get("PORT", 8080))  # Default to 8080
+    print(f"📦 Flask App Running on http://localhost:{port}")
+    app.run(host='0.0.0.0', port=port, debug=True)
