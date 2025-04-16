@@ -1,56 +1,46 @@
-
-# Project Flask App
+# 📚 Voice-to-Book Q&A Web App – by Charles Bazile
 
 ## 📌 Description
-This Flask-based web application allows users to:
-- 🎤 **Record audio** using their microphone and upload the recording for transcription and sentiment analysis using Google Cloud's **Vertex AI Multimodal LLM**.
-- 📝 **View real-time sentiment feedback** directly from the LLM response.
+This Flask-based web application enables users to:
+- 📘 **Upload a PDF book** for reference.
+- 🎤 **Record a question using their voice**, which is transcribed and answered **using only the content of the uploaded book**.
+- 🤖 Responses are generated using **Google Vertex AI's Gemini 2.5 multimodal model**.
 
-🚫 **Text-to-Speech and separate APIs (Speech-to-Text, Natural Language)** were used in the previous version but have now been removed to simplify the experience.
+🔁 All interactions (audio, transcript, answer) are processed and saved for reference.
 
-## 🚀 Features (Current Version)
-### ✅ **Unified Transcription & Sentiment Analysis**
-- Record audio directly from the browser.
-- Upload and analyze using **Vertex AI Gemini models**.
-- A single API call returns both **transcription** and **sentiment analysis**.
-- Results are saved in a `.txt` file alongside the `.wav` audio.
-- Graceful handling for **quota issues**, **timeouts**, and **safety filter blocks**.
-
-### ✅ **User Interface Enhancements**
-- Modern layout with a clean recording interface.
-- Displayed transcription and sentiment results side-by-side.
-- Clear indicators when safety filters block the model’s response.
+> ✨ Previous APIs (Speech-to-Text, Natural Language, Text-to-Speech) were **replaced** with a single multimodal LLM call for efficiency and better performance.
 
 ---
 
-## 🧠 Features from Previous Version
-Before the Project 3 changes, the app included:
+## 🚀 Features (Current Version)
 
-### 🎙️ **Speech-to-Text using Google API**
-- Audio recording from the browser
-- Uploads were transcribed using the **Google Speech-to-Text API**
-- Sentiment analysis was performed using **Google Natural Language API**
+### ✅ **Gemini 2.5 Multimodal Q&A**
+- Voice input recorded directly in the browser
+- PDF book is uploaded and parsed as the knowledge source
+- A single call to **Gemini 2.5**:
+  - Transcribes the question
+  - Answers based **only** on the uploaded PDF content
+- Displays transcription and book-based answer
+- Audio answer is generated with **Text-to-Speech** and played automatically
 
-### 🗣️ **Text-to-Speech with Sentiment**
-- User could enter text
-- Text was converted to audio using **Google Text-to-Speech API**
-- Sentiment was analyzed before conversion
-
-### 🎨 **UI Enhancements**
-- Color-coded sentiment labels (green for positive, red for negative, gray for neutral)
-- Sections for both transcribed audio and text-generated speech
-
-These features were removed or merged to simplify the current architecture.
+### ✅ **Streamlined User Interface**
+- One-click book upload
+- Clear recording controls
+- Real-time feedback with:
+  - Transcribed text
+  - Answer content
+  - Spoken answer via MP3 playback
+- Visual status updates (uploading, processing, error handling)
 
 ---
 
 ## ⚙️ Setup Instructions
 
 ### 🔹 Prerequisites
-- Python 3.x installed
-- ffmpeg installed on your system
-- Google Cloud Project with Vertex AI enabled
-- A service account JSON key file with access to Vertex AI
+- Python 3.8+
+- `ffmpeg` installed
+- Google Cloud project with **Vertex AI** and **Text-to-Speech** APIs enabled
+- A **service account JSON key** with access to both APIs
 
 ### 🔹 Installation
 ```bash
@@ -63,57 +53,3 @@ pip install -r requirements.txt
 
 export GOOGLE_APPLICATION_CREDENTIALS="path/to/your/key.json"
 python main.py
-```
-
----
-
-## 🧪 How to Use the App
-
-### 📌 Accessing the Application
-Open a web browser and go to:  
-🔗 [Live App](https://projectflaskapp-921157662827.us-central1.run.app/)
-
-### 🎤 Record & Analyze Speech
-1. Click **Start Recording**  
-2. Speak clearly and click **Stop Recording**  
-3. The app will:
-   - Convert audio to WAV
-   - Transcribe + analyze using Gemini
-   - Display and save the results
-
----
-
-## 📊 Understanding the Sentiment Results
-- Sentiment labels: **Positive**, **Neutral**, **Negative**
-- Model response may be blocked by safety filters
-- The app shows a message if that happens
-
----
-
-## 📉 Limitations & Reliability
-- Safety filters may block some results
-- Gemini APIs have usage quotas
-- Retry logic + delay reduce failure rates
-
----
-
-## 📂 File Storage Behavior
-- `.wav` files stored in `uploads/`
-- Each has a matching `.txt` with:
-  - File name
-  - Transcript
-  - Sentiment analysis
-
----
-
-## 🔁 Recent Changes (Project 3 Update)
-| Change                         | Description                                               |
-|-------------------------------|-----------------------------------------------------------|
-| 🎯 Replaced 3 APIs             | Now uses a single Gemini LLM for transcription & sentiment |
-| 🧹 Removed TTS                | Text-to-Speech feature removed                            |
-| 🚦 Retry + Safety Handling    | App won't crash if Gemini blocks or times out             |
-| 💾 Better File Management     | All outputs saved by filename with `.txt` extension       |
-
----
-
-🚀 **You’re now ready to experience smarter, faster speech intelligence!** 🎉
