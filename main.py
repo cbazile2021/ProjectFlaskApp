@@ -1,32 +1,18 @@
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, send_from_directory, jsonify
 import os
-
-ENV = os.getenv("ENV", "local")
-
-
-if os.environ.get("ENV") != "cloud":
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/charlesandersbazile/Downloads/ProjectFlaskApp/project1-charlesbazile-cot5930-33bd4c8216ee.json"
-
 import subprocess
 import json
 import time
 import imageio_ffmpeg as ffmpeg
 import pdfplumber
 from google.cloud import texttospeech
-from vertexai.generative_models import GenerativeModel, Part
-from google.oauth2 import service_account
-
-
-
-# Vertex AI Imports
 import vertexai
 from vertexai.generative_models import GenerativeModel, Part
 
+# === Flask Setup ===
 app = Flask(__name__)
-
 app.secret_key = 'cf3ec500710dc68a09a92a7f70c6991e'
-
 
 UPLOAD_FOLDER = 'uploads'
 BOOK_FOLDER = 'books'
@@ -38,20 +24,17 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['BOOK_FOLDER'] = BOOK_FOLDER
 app.config['ANSWER_FOLDER'] = ANSWER_FOLDER
 
-# Create folders if not exist
 for folder in [UPLOAD_FOLDER, BOOK_FOLDER, ANSWER_FOLDER]:
     os.makedirs(folder, exist_ok=True)
 
+# === Vertex AI Initialization ===
 vertexai.init(project="project1-charlesbazile-cot5930", location="us-central1")
 model = GenerativeModel("gemini-2.5-pro-exp-03-25")
 
-credentials = service_account.Credentials.from_service_account_file(
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
-)
-tts_client = texttospeech.TextToSpeechClient(credentials=credentials)
+# === Google Cloud TTS Client ===
+tts_client = texttospeech.TextToSpeechClient()
 
-
-# ==== Utility Functions ====
+# === Utility Functions ===
 def allowed_file(filename, allowed_set):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_set
 
@@ -66,7 +49,7 @@ def extract_text_from_pdf(pdf_path):
             text = page.extract_text()
             if text:
                 full_text += text + "\n"
-    return full_text[:15000]  # Trim to stay within LLM limits
+    return full_text[:15000]
 
 def convert_to_linear16(input_path, output_path):
     ffmpeg_path = ffmpeg.get_ffmpeg_exe()
@@ -86,7 +69,7 @@ def synthesize_speech(text, output_path):
     with open(output_path, "wb") as out:
         out.write(response.audio_content)
 
-# ==== Routes ====
+# === Routes ===
 @app.route('/')
 def index():
     audio_files = [
@@ -196,8 +179,7 @@ def get_uploaded_audio(filename):
 def get_uploaded_book(filename):
     return send_from_directory(BOOK_FOLDER, filename)
 
-
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
-    print(f"📦 Flask App Running on http://localhost:{port}")
+    print(f"\U0001F4E6 Flask App Running on http://localhost:{port}")
     app.run(host='0.0.0.0', port=port, debug=True)
