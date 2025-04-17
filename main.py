@@ -150,7 +150,7 @@ def analyze_question_with_llm(audio_path):
         if not book_path:
             return None, "No book uploaded."
 
-        book_text = extract_text_from_pdf(book_path)
+        book_text = extract_text_from_pdf(book_path)[:5000]  # Trim for LLM input
 
         prompt = (
             "You are a helpful assistant. Answer the user's question using ONLY the contents of the following book.\n\n"
@@ -160,24 +160,27 @@ def analyze_question_with_llm(audio_path):
         )
 
         audio_part = Part.from_data(audio_data, mime_type="audio/wav")
-        print("Sending prompt to Gemini")
 
-        for _ in range(3):
+        for attempt in range(3):
             try:
                 response = model.generate_content([prompt, audio_part])
 
+                # ✨ Check if response was blocked
                 if response.prompt_feedback and response.prompt_feedback.block_reason:
-                    return "Blocked", "Gemini blocked this request."
+                    print("⚠️ Gemini blocked the request:", response.prompt_feedback.block_reason)
+                    return "Blocked for safety", "Gemini blocked the content due to safety filters."
 
                 return "Transcribed question (auto)", response.text.strip()
             except Exception as e:
-                print(f"LLM retry due to: {e}")
+                print(f"Retry {attempt + 1} failed:", e)
                 time.sleep(2)
 
-        return None, "LLM call failed"
+        return None, "Failed to get LLM response."
+
     except Exception as e:
         print(f"LLM Analysis Error: {e}")
         return None, None
+
 
 @app.route('/answers/<filename>')
 def get_answer_audio(filename):
